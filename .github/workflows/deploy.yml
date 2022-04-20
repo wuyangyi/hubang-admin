@@ -13,10 +13,6 @@ jobs:
     # 使用ubuntu系统镜像运行自动化脚本
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: 14.18.1
-
     steps:
       # 获取源码
       - name: Checkout
