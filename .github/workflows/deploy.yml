@@ -46,26 +46,117 @@ jobs:
             ${{ runner.os }}-
       # npm install
       - name: Install Dependencies
-        if: steps.node.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
+          npm -v
           npm install
-          npm run build
-        env:
-          CI: true
 
-      # Deploy
-      - name: Deploy to Server
-        uses: easingthemes/ssh-deploy@v2.0.7
+      # Publish
+      - name: Publish
+        run: npm run publish
+
+      # tar
+      - name: Tar dist
+        run: tar zcf build.tar.gz build package.json package-lock.json next.config.js
+
+      # Deploy to server
+      - name: Deploy to server
+        id: deploy
+        uses: Pendect/action-rsyncer@v1.1.0
         env:
-          # 本地.ssh文件下的私钥id_rsa，存在secrets的TOKEN中
-          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_KEY }}
-          # 复制操作的参数。"-avzr --delete"意味部署时清空服务器目标目录下的文件
-          ARGS: '-avzr --delete'
-          # 源目录，相对于$GITHUB_WORKSPACE根目录的路径
-          SOURCE: 'git@github.com:wuyangyi/hubang-admin.git'
-          # 服务器域名
-          REMOTE_HOST: ${{ secrets.SERVER_HOST }}
-          # 云服务器用户名
-          REMOTE_USER: ${{ secrets.SERVER_USERNAME }}
-          # 目标目录
-          TARGET: '/www/wwwroot/hubang-admin'
+          DEPLOY_KEY: ${{secrets.ACCESS_TOKEN}}
+        with:
+          flags: '-avzr --delete'
+          options: ''
+          ssh_options: ''
+          src: 'build.tar.gz'
+          dest: '${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/blogs'
+
+
+name: Deploy next blog
+
+on:
+  # 手动触发
+  workflow_dispatch:
+#  push:
+#    branches: [ main ]
+#  pull_request:
+#    branches: [ main ]
+
+jobs:
+  build:
+    # 使用ubuntu系统镜像运行自动化脚本
+    runs-on: ubuntu-latest
+
+    steps:
+      # 切换分支
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # 使用 node:16
+      - name: use Node.js 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      # 缓存 node modules
+      - name: Cache node modules
+        uses: actions/cache@v2
+        id: cache
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      # npm install
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          npm -v
+          npm install
+
+      # Publish
+      - name: Publish
+        run: npm run publish
+
+      # tar
+      - name: Tar dist
+        run: tar zcf build.tar.gz build package.json package-lock.json next.config.js
+
+      # Deploy to server
+      - name: Deploy to server
+        id: deploy
+        uses: Pendect/action-rsyncer@v1.1.0
+        env:
+          DEPLOY_KEY: ${{secrets.DEPLOY_KEY}}
+        with:
+          flags: '-avzr --delete'
+          options: ''
+          ssh_options: ''
+          src: 'build.tar.gz'
+          dest: '${{ secrets.SERVER_USERNAME }}@${{ secrets.REMOTE_HOST }}:/hubang-admin'
+
+      # 远程Command
+      - name: Command
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd /blogs
+            tar zxf build.tar.gz
+            rm build.tar.gz
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
+            npm i
+            pm2 delete blogs
+            npm run pm2
+            pm2 save
+            echo "Complete!!!"
