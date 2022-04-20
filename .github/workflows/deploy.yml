@@ -1,0 +1,70 @@
+name: Deploy admin blog
+
+on:
+  # 手动触发
+  workflow_dispatch:
+#  push:
+#    branches: [ main ]
+#  pull_request:
+#    branches: [ main ]
+
+jobs:
+  build:
+    # 使用ubuntu系统镜像运行自动化脚本
+    runs-on: ubuntu-latest
+
+    steps:
+      # 切换分支
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      #      # 下载 git submodule
+      #      - uses: srt32/git-actions@v0.0.3
+      #        with:
+      #          args: git submodule update --init --recursive
+
+      # 使用 node:16
+      - name: use Node.js 14.18.1
+        id: node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.18.1'
+
+      # 缓存 node modules
+      - name: Cache node modules
+        uses: actions/cache@v2
+        id: cache
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      # npm install
+      - name: Install Dependencies
+        if: steps.node.outputs.cache-hit != 'true'
+        run: |
+          npm install
+          npm run build
+        env:
+          CI: true
+
+      - name: Deploy to Server
+        uses: easingthemes/ssh-deploy@v2.0.7
+        env:
+          # 本地.ssh文件下的私钥id_rsa，存在secrets的TOKEN中
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_KEY }}
+          # 复制操作的参数。"-avzr --delete"意味部署时清空服务器目标目录下的文件
+          ARGS: '-avzr --delete'
+          # 源目录，相对于$GITHUB_WORKSPACE根目录的路径
+          SOURCE: 'dist/*'
+          # 服务器域名
+          REMOTE_HOST: ${{ secrets.SERVER_HOST }}
+          # 云服务器用户名
+          REMOTE_USER: ${{ secrets.SERVER_USERNAME }}
+          # 目标目录
+          TARGET: '/www/wwwroot/hubang-admin'
