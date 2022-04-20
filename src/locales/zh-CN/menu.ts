@@ -2,7 +2,7 @@ export default {
   'menu.welcome': '欢迎',
   'menu.more-blocks': '更多区块',
   'menu.home': '首页',
-  'menu.admin': '管理页',
+  // 'menu.admin': '管理页',
   'menu.admin.sub-page': '二级管理页',
   'menu.login': '登录',
   'menu.register': '注册',
@@ -49,4 +49,61 @@ export default {
   'menu.editor.flow': '流程编辑器',
   'menu.editor.mind': '脑图编辑器',
   'menu.editor.koni': '拓扑编辑器',
+
+  //------------------------//
+
+  'menu.admin': '管理员',
+  'menu.admin.list': '管理员列表',
+  'menu.admin.add': '添加管理员',
+
+  'menu.user': '用户管理',
+  'menu.user.list': '用户列表',
+  'menu.user.integral': '积分管理',
+  'menu.user.certification': '认证管理',
+
+  'menu.helper': '互帮管理',
+  'menu.helper.list': '互帮列表',
+  'menu.helper.audit': '互帮审核',
+  'menu.helper.type': '分类管理',
+
+  'menu.order': '订单管理',
+  'menu.order.list': '订单列表',
+  'menu.order.need_solved': '待解决订单',
+
+  'menu.session': '会话管理',
+  'menu.session.temporary': '临时会话',
+  'menu.session.group': '群会话',
+
+  'menu.group': '群管理',
+  'menu.group.list': '群列表',
+  'menu.group.audit': '群审核',
+
+  'menu.circle': '帮圈管理',
+  'menu.circle.list': '帮圈列表',
+  'menu.circle.audit': '帮圈审核',
+  'menu.circle.add': '添加帮圈',
+  'menu.circle.hot': '热门帮圈',
+
+  'menu.dynamic': '动态管理',
+  'menu.dynamic.list': '动态列表',
+  'menu.dynamic.commit': '评论管理',
+
+  'menu.news': '文章资讯',
+  'menu.news.list': '文章列表',
+  'menu.news.add': '添加文章',
+  'menu.news.banner': '广告位',
+
+  'menu.app': 'APP管理',
+  'menu.app.list': '版本列表',
+  'menu.app.send': '发布版本',
+  'menu.app.download': 'APP下载',
+
+  'menu.other': '其他',
+  'menu.other.sms': '短信日志',
+  'menu.other.feedback': '用户反馈',
+  'menu.other.industry': '行业管理',
+  'menu.other.school': '学校管理',
+  'menu.other.city': '城市管理',
+  'menu.other.picture': '图片管理',
+  'menu.other.block-work': '屏蔽词',
 };

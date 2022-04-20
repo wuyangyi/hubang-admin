@@ -1,16 +1,20 @@
 import type { Settings as LayoutSettings } from '@ant-design/pro-layout';
 import { SettingDrawer } from '@ant-design/pro-layout';
 import { PageLoading } from '@ant-design/pro-layout';
-import type { RunTimeLayoutConfig } from 'umi';
+import type { RequestConfig, RunTimeLayoutConfig } from 'umi';
 import { history } from 'umi';
 import RightContent from '@/components/RightContent';
 import Footer from '@/components/Footer';
-import { currentUser as queryCurrentUser } from './services/ant-design-pro/api';
 // import { BookOutlined, LinkOutlined } from '@ant-design/icons';
 import defaultSettings from '../config/defaultSettings';
+import dateUtils from './utils/dateUtils';
+import cookieUils from './utils/cookieUtils';
+import type { RequestOptionsInit } from 'umi-request';
+import aesUtils from './utils/aesUtils';
+import { autoLogin } from './services/user';
 
 const isDev = process.env.NODE_ENV === 'development';
-const loginPath = '/user/login';
+const loginPath = '/account/login';
 
 /** 获取用户信息比较慢的时候会展示一个 loading */
 export const initialStateConfig = {
@@ -22,14 +26,17 @@ export const initialStateConfig = {
  * */
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
-  currentUser?: API.CurrentUser;
+  currentUser?: USERAPI.AuthBean;
   loading?: boolean;
-  fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
 }> {
-  const fetchUserInfo = async () => {
+  const fetchAutoLogin = async () => {
     try {
-      const msg = await queryCurrentUser();
-      return msg.data;
+      const msg = await autoLogin();
+      if (msg.status === 1) {
+        return msg.data;
+      } else {
+        history.push(loginPath);
+      }
     } catch (error) {
       history.push(loginPath);
     }
@@ -37,15 +44,13 @@ export async function getInitialState(): Promise<{
   };
   // 如果是登录页面，不执行
   if (history.location.pathname !== loginPath) {
-    const currentUser = await fetchUserInfo();
+    const currentUser = await fetchAutoLogin();
     return {
-      fetchUserInfo,
       currentUser,
       settings: defaultSettings,
     };
   }
   return {
-    fetchUserInfo,
     settings: defaultSettings,
   };
 }
@@ -104,4 +109,45 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     },
     ...initialState?.settings,
   };
+};
+
+// 请求前拦截器
+const authHeaderInterceptor = (url: string, options: RequestOptionsInit) => {
+  const token = cookieUils.getToken();
+  const header = {
+    now_time: `${dateUtils.getNowTime()}`,
+    client: 'admin-pc',
+    version: '1.0',
+    did: 'HUBANG_ADMIN',
+    token: token || '',
+  };
+  // const aesHeader = `&now_time=${header['now_time']}&client=${header['client']}&version=${header['version']}&did=${header['did']}&token=${header['token']}`;
+  const aesHeader =
+    'now_time=' +
+    header['now_time'] +
+    '&client=' +
+    header['client'] +
+    '&version=' +
+    header['version'] +
+    '&did=' +
+    header['did'] +
+    '&token=' +
+    header['token'];
+  header['sign'] = aesUtils.encrypt(aesHeader);
+  header['Content-Type'] = 'application/json';
+  return {
+    url: `${url}`,
+    options: { ...options, interceptors: true, headers: header },
+  };
+};
+
+// // 请求后拦截器
+// const responseInterceptors = (response: Response, options: RequestOptionsInit) => {
+//   return response;
+// };
+
+export const request: RequestConfig = {
+  // 新增请求拦截器
+  requestInterceptors: [authHeaderInterceptor],
+  // responseInterceptors: [responseInterceptors],
 };

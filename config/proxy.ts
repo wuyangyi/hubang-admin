@@ -26,7 +26,7 @@ export default {
   },
   pre: {
     '/api/': {
-      target: 'your pre url',
+      target: 'http://api.helpweb.top/',
       changeOrigin: true,
       pathRewrite: { '^': '' },
     },

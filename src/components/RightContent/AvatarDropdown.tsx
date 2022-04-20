@@ -5,8 +5,8 @@ import { history, useModel } from 'umi';
 import { stringify } from 'querystring';
 import HeaderDropdown from '../HeaderDropdown';
 import styles from './index.less';
-import { outLogin } from '@/services/ant-design-pro/api';
 import type { MenuInfo } from 'rc-menu/lib/interface';
+import cookieUils from '@/utils/cookieUtils';
 
 export type GlobalHeaderRightProps = {
   menu?: boolean;
@@ -16,13 +16,13 @@ export type GlobalHeaderRightProps = {
  * 退出登录，并且将当前的 url 保存
  */
 const loginOut = async () => {
-  await outLogin();
+  cookieUils.removeToken();
   const { query = {}, search, pathname } = history.location;
   const { redirect } = query;
   // Note: There may be security issues, please note
-  if (window.location.pathname !== '/user/login' && !redirect) {
+  if (window.location.pathname !== '/account/login' && !redirect) {
     history.replace({
-      pathname: '/user/login',
+      pathname: '/account/login',
       search: stringify({
         redirect: pathname + search,
       }),
@@ -96,7 +96,7 @@ const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
         <Avatar
           size="small"
           className={styles.avatar}
-          src="./image/default_head.png"
+          src="../../image/default_head.png"
           alt="avatar"
         />
         <span className={`${styles.name} anticon`}>{currentUser.name}</span>
