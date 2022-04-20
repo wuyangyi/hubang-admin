@@ -13,10 +13,16 @@ jobs:
     # 使用ubuntu系统镜像运行自动化脚本
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: 14.18.1
+
     steps:
-      # 切换分支
+      # 获取源码
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@main # 获取main代码
+        with:
+          persist-credentials: false
 
       # # 下载 git submodule
       # - uses: srt32/git-actions@v0.0.3
@@ -50,15 +56,15 @@ jobs:
         if: steps.node.outputs.cache-hit != 'true'
         run: npm install
 
-      # # Create .env
-      # - name: Create .env
-      #   env:
-      #     ACCESSKEY: ${{ secrets.ACCESSKEY }}
-      #     SECRETKEY: ${{ secrets.SECRETKEY }}
-      #   run: |
-      #     echo ACCESSKEY="$ACCESSKEY" >> .env
-      #     echo SECRETKEY="$SECRETKEY" >> .env
-      #   shell: bash
+      # Create .env
+      - name: Create .env
+        env:
+          ACCESSKEY: ${{ secrets.ACCESSKEY }}
+          SECRETKEY: ${{ secrets.SECRETKEY }}
+        run: |
+          echo ACCESSKEY="$ACCESSKEY" >> .env
+          echo SECRETKEY="$SECRETKEY" >> .env
+        shell: bash
 
       # Publish
       - name: Publish
