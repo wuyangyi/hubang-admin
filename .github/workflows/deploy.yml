@@ -20,7 +20,7 @@ jobs:
     steps:
       # 获取源码
       - name: Checkout
-        uses: actions/checkout@main # 获取main代码
+        uses: actions/checkout@v2 # 获取main代码
         with:
           persist-credentials: false
 
