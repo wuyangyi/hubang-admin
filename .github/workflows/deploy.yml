@@ -2,9 +2,9 @@ name: Deploy admin hubang
 
 on:
   # 手动触发
-  workflow_dispatch:
-#  push:
-#    branches: [ main ]
+  # workflow_dispatch:
+ push:
+   branches: [ main ]
 #  pull_request:
 #    branches: [ main ]
 
