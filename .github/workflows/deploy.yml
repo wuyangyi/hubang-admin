@@ -52,29 +52,22 @@ jobs:
         if: steps.node.outputs.cache-hit != 'true'
         run: npm install
 
-      # Create .env
-      - name: Create .env
-        env:
-          ACCESSKEY: ${{ secrets.ACCESSKEY }}
-          SECRETKEY: ${{ secrets.SECRETKEY }}
-        run: |
-          echo ACCESSKEY="$ACCESSKEY" >> .env
-          echo SECRETKEY="$SECRETKEY" >> .env
-        shell: bash
 
-      # Publish
-      - name: Publish
-        run: npm run publish
+      # Build
+    - name: Build
+      run: npm run build
 
       # Deploy to server
       - name: Deploy to server
         id: deploy
-        uses: Pendect/action-rsyncer@v1.1.0
+        uses: cross-the-world/scp-pipeline@main
         env:
-          DEPLOY_KEY: ${{secrets.DEPLOY_KEY}}
+          WELCOME: "ssh scp ssh pipelines"
+          LASTSSH: "Doing something after copying"
         with:
-          flags: '-avzr --delete'
-          options: ''
-          ssh_options: ''
-          src: 'dist/index.html'
-          dest: '${{ secrets.SERVER_USERNAME }}@${{ secrets.REMOTE_HOST }}:/www/wwwroot/hubang-admin'
+          host: ${{ secrets.SERVER_HOST }}
+          user: ${{ secrets.SERVER_USERNAME }}
+          pass: ${{ secrets.SERVER_PASS }}
+          connect_timeout: 10s
+          local: './dist/*'
+          remote: /home/www/wwwroot/hubang-admin
