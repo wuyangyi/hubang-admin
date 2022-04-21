@@ -2,9 +2,9 @@ name: Deploy admin hubang
 
 on:
   # 手动触发
-  # workflow_dispatch:
- push:
-   branches: [ main ]
+  workflow_dispatch:
+#  push:
+#    branches: [ main ]
 #  pull_request:
 #    branches: [ main ]
 
@@ -15,10 +15,10 @@ jobs:
 
     steps:
       # 获取源码
-      - name: Checkout
-        uses: actions/checkout@v2 # 获取main代码
-        with:
-          persist-credentials: false
+      # - name: Checkout
+      uses: actions/checkout@v2 # 获取main代码
+        # with:
+        #   persist-credentials: false
 
       # # 下载 git submodule
       # - uses: srt32/git-actions@v0.0.3
