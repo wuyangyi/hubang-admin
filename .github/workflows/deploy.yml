@@ -64,7 +64,7 @@ jobs:
 
       # Publish
       - name: Publish
-        run: npm run build
+        run: npm run publish
 
       # Deploy to server
       - name: Deploy to server
