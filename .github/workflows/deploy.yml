@@ -14,16 +14,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 获取源码
-      # - name: Checkout
-      uses: actions/checkout@v2 # 获取main代码
-        # with:
-        #   persist-credentials: false
+      # 切换分支
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      # # 下载 git submodule
-      # - uses: srt32/git-actions@v0.0.3
-      #   with:
-      #     args: git submodule update --init --recursive
+      #      # 下载 git submodule
+      #      - uses: srt32/git-actions@v0.0.3
+      #        with:
+      #          args: git submodule update --init --recursive
 
       # 使用 node:16
       - name: use Node.js 14.18.1
@@ -46,28 +44,34 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-
       # npm install
       - name: Install Dependencies
         if: steps.node.outputs.cache-hit != 'true'
         run: npm install
 
+      # Create .env
+      - name: Create .env
+        env:
+          ACCESSKEY: ${{ secrets.ACCESSKEY }}
+          SECRETKEY: ${{ secrets.SECRETKEY }}
+        run: |
+          echo ACCESSKEY="$ACCESSKEY" >> .env
+          echo SECRETKEY="$SECRETKEY" >> .env
+        shell: bash
 
-      # Build
-    - name: Build
-      run: npm run build
+      # build
+      - name: Publish
+        run: npm run build
 
       # Deploy to server
       - name: Deploy to server
         id: deploy
-        uses: cross-the-world/scp-pipeline@main
+        uses: Pendect/action-rsyncer@v1.1.0
         env:
-          WELCOME: "ssh scp ssh pipelines"
-          LASTSSH: "Doing something after copying"
+          DEPLOY_KEY: ${{secrets.ACCESS_TOKEN}}
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          user: ${{ secrets.SERVER_USERNAME }}
-          pass: ${{ secrets.SERVER_PASS }}
-          connect_timeout: 10s
-          local: './dist/*'
-          remote: /home/www/wwwroot/hubang-admin
+          flags: '-avzr --delete'
+          options: ''
+          ssh_options: ''
+          src: 'dist/index.html'
+          dest: '${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/wwwroot/hubang-admin'
