@@ -15,8 +15,7 @@ jobs:
 
     steps:
       # 切换分支
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
       #      # 下载 git submodule
       #      - uses: srt32/git-actions@v0.0.3
@@ -60,18 +59,20 @@ jobs:
         shell: bash
 
       # build
-      - name: Publish
+      - name: Build
         run: npm run build
 
       # Deploy to server
       - name: Deploy to server
         id: deploy
-        uses: Pendect/action-rsyncer@v1.1.0
+        uses: cross-the-world/scp-pipeline@master
         env:
-          DEPLOY_KEY: ${{secrets.ACCESS_TOKEN}}
+          WELCOME: 'ssh scp ssh pipelines'
+          LASTSSH: 'Doing something after copying'
         with:
-          flags: '-avzr --delete'
-          options: ''
-          ssh_options: ''
-          src: 'dist/index.html'
-          dest: '${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/wwwroot/hubang-admin'
+          host: ${{ secrets.SERVER_HOST }}
+          user: ${{ secrets.SERVER_USERNAME }}
+          pass: ${{ secrets.SERVER_PASS }}
+          connect_timeout: 10s
+          local: './dist/*'
+          remote: /www/wwwroot/hubang-admin
